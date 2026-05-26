@@ -66,11 +66,17 @@ export class LiveDataSource {
 
         return { updatedTokens, btcData };
 
-    } catch (err) {
+    } catch (err: any) {
         console.error('KESTREL: CoinGecko market data fetch failed.', err);
+        
+        let toastMsg = 'Could not fetch market data from CoinGecko. Check connection or API status.';
+        if (err?.status === 429 || (err?.message && err.message.includes('429'))) {
+            toastMsg = 'CoinGecko API Rate Limit Exceeded (429). Please wait before requesting again.';
+        }
+
         this.notificationService.show(
             'Live Data Feed Failed',
-            'Could not fetch market data from CoinGecko. Check connection or API status.',
+            toastMsg,
             'danger',
             'INFO'
         );
@@ -125,11 +131,17 @@ export class LiveDataSource {
         return token;
       });
 
-    } catch (err) {
+    } catch (err: any) {
       console.error('KESTREL: CoinMarketCap fetch failed.', err);
+      
+      let toastMsg = 'Could not connect. Please verify your API key and network connection.';
+      if (err?.status === 429 || (err?.message && err.message.includes('429'))) {
+          toastMsg = 'CoinMarketCap Rate Limit Exceeded (429). Check your API tier quotas.';
+      }
+
       this.notificationService.show(
         'CoinMarketCap Feed Failed',
-        'Could not connect. Please verify your API key and network connection.',
+        toastMsg,
         'danger',
         'INFO'
       );
@@ -206,11 +218,15 @@ export class LiveDataSource {
           return btcToken;
       }
       return null;
-    } catch (err) {
+    } catch (err: any) {
       console.error('KESTREL: Detailed BTC fetch from CoinGecko failed.', err);
+      let toastMsg = 'Could not fetch detailed Bitcoin data from CoinGecko.';
+      if (err?.status === 429 || (err?.message && err.message.includes('429'))) {
+          toastMsg = 'CoinGecko Rate Limit Exceeded (429). Please wait before requesting again.';
+      }
       this.notificationService.show(
         'BTC Data Failed',
-        'Could not fetch detailed Bitcoin data from CoinGecko.',
+        toastMsg,
         'danger',
         'INFO'
       );
@@ -239,11 +255,15 @@ export class LiveDataSource {
         const newRemote = remoteMatches.filter(r => !localSymbols.has(r.symbol.toUpperCase()));
   
         return [...localMatches, ...newRemote];
-      } catch (err) {
+      } catch (err: any) {
         console.error('Live search failed', err);
+        let toastMsg = 'Could not fetch token suggestions from CoinGecko.';
+        if (err?.status === 429 || (err?.message && err.message.includes('429'))) {
+            toastMsg = 'CoinGecko API Rate Limit Exceeded (429) during search.';
+        }
         this.notificationService.show(
             'Token Search Failed',
-            'Could not fetch token suggestions from CoinGecko.',
+            toastMsg,
             'warning',
             'INFO'
         );

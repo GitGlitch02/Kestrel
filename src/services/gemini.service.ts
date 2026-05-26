@@ -77,11 +77,17 @@ export class GeminiService {
       const sources: GroundingChunk[] = (Array.isArray(groundingChunks) ? groundingChunks : []) as GroundingChunk[];
       
       return { narrative, sources };
-    } catch (e) {
+    } catch (e: any) {
       console.error('Gemini Narrative Error', e);
+      
+      let toastMsg = 'Could not generate market analysis. The AI module may be temporarily unavailable.';
+      if (e?.status === 429 || (e?.message && e.message.includes('429'))) {
+         toastMsg = 'API Quota Exceeded (429). Please check your billing details and rate limits.';
+      }
+
       this.notificationService.show(
         'AI Narrative Failed',
-        'Could not generate market analysis. The AI module may be temporarily unavailable.',
+        toastMsg,
         'danger',
         'INFO'
       );
@@ -126,11 +132,17 @@ export class GeminiService {
         }
       }
       return null;
-    } catch (e) {
+    } catch (e: any) {
       console.error(`News Spike check failed for ${token.symbol}`, e);
+      
+      let toastMsg = `Could not scan for news updates for ${token.symbol}.`;
+      if (e?.status === 429 || (e?.message && e.message.includes('429'))) {
+         toastMsg = 'API Quota Exceeded (429). Please check your Gemini API plan.';
+      }
+
       this.notificationService.show(
         'AI News Check Failed',
-        `Could not scan for news updates for ${token.symbol}.`,
+        toastMsg,
         'danger',
         'INFO'
       );
@@ -169,11 +181,17 @@ export class GeminiService {
         contents: prompt,
       });
       return response.text || "ANALYSIS FAILED";
-    } catch (e) {
+    } catch (e: any) {
       console.error(`Gemini tactical analysis failed for ${signal.tokenSymbol}`, e);
+      
+      let toastMsg = 'The AI module could not generate a tactical analysis for the signal.';
+      if (e?.status === 429 || (e?.message && e.message.includes('429'))) {
+         toastMsg = 'API Quota Exceeded (429). Tactical analysis unavailable.';
+      }
+
       this.notificationService.show(
         'AI Tactical Analysis Failed',
-        'The AI module could not generate a tactical analysis for the signal.',
+        toastMsg,
         'danger',
         'INFO'
       );
