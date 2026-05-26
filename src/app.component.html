@@ -1,0 +1,757 @@
+<div class="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col transition-colors duration-500" [class.motion-safe]="prefs.reducedMotion()">
+  
+  <!-- SIMULATION MODE BANNER -->
+  @if (prefs.dataSourceMode() === 'SIMULATION') {
+    <div class="sticky top-0 z-50 bg-yellow-400/80 dark:bg-amber-500/80 text-black dark:text-black font-mono text-[10px] md:text-xs text-center p-2 flex flex-wrap md:flex-nowrap items-center justify-center gap-2 md:gap-4 border-b border-yellow-500/50 dark:border-amber-600/50 shadow-md min-h-[36px]">
+      <div class="flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 3.001-1.742 3.001H4.42c-1.53 0-2.493-1.667-1.743-3.001l5.58-9.92zM10 13a1 1 0 110-2 1 1 0 010 2zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+        <span class="font-bold tracking-wider">SIMULATION MODE ACTIVE <span class="hidden sm:inline">— MARKET DATA IS NOT REAL</span></span>
+      </div>
+      <button (click)="prefs.setDataSourceMode('LIVE')" class="font-bold border border-black/30 rounded px-2 py-0.5 hover:bg-black/10 transition-colors whitespace-nowrap bg-yellow-300 dark:bg-amber-400">[SWITCH TO LIVE]</button>
+    </div>
+  }
+
+  <!-- Header / Nav -->
+  <header class="sticky z-40 bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-sm flex flex-col gap-4 px-4 md:px-6 pt-4 pb-4" [class.top-9]="prefs.dataSourceMode() === 'SIMULATION'" [class.top-0]="prefs.dataSourceMode() !== 'SIMULATION'">
+    <!-- Top Row: Branding, Clock, System Controls -->
+    <div class="flex justify-between items-center w-full">
+        <!-- Left: Branding -->
+        <div class="flex items-center gap-3 md:gap-4 shrink-0">
+          <app-logo class="w-8 h-8 sm:w-12 sm:h-12 md:w-16 md:h-16 text-slate-800 dark:text-teal-400 shrink-0" />
+          <div class="shrink">
+            <h1 class="text-xl sm:text-3xl md:text-4xl font-bold text-slate-900 dark:text-slate-200 cygnus-text truncate">
+              KESTREL <span class="text-green-600 dark:text-teal-400 hidden sm:inline">TERMINAL</span>
+            </h1>
+            <p class="text-slate-500 font-mono text-[9px] sm:text-xs md:text-sm mt-0.5 sm:mt-1 truncate">
+              QUANTITATIVE <span class="hidden sm:inline">MARKET </span>ANALYSIS
+            </p>
+          </div>
+        </div>
+
+        <!-- Right: Clock & System Buttons -->
+        <div class="flex items-center justify-end gap-3 md:gap-6 ml-auto">
+            <!-- Real-time Clock -->
+            <div class="hidden sm:block text-right font-mono">
+              <div class="text-[10px] md:text-xs text-slate-500 tabular-nums">{{ currentTime() | date:'yyyy-MM-dd' }}</div>
+              <div class="text-base md:text-xl font-bold text-slate-700 dark:text-slate-300 tabular-nums tracking-wider flex items-center justify-end">
+                <span>{{ currentTime() | date:(prefs.timeFormat() === '24H' ? 'HH' : 'h') }}</span>
+                <span [class.opacity-0]="prefs.blinkingColon() && currentTime().getSeconds() % 2 === 0">:</span>
+                <span>{{ currentTime() | date:'mm' }}</span>
+                @if (prefs.showSeconds()) {
+                  <span [class.opacity-0]="prefs.blinkingColon() && currentTime().getSeconds() % 2 === 0">:</span>
+                  <span>{{ currentTime() | date:'ss' }}</span>
+                }
+                @if (prefs.timeFormat() === '12H') {
+                  <span class="ml-1 text-[10px] md:text-sm">{{ currentTime() | date:'a' }}</span>
+                }
+              </div>
+            </div>
+            <!-- System Buttons -->
+            <div class="flex items-center gap-2 sm:border-l border-slate-200 dark:border-slate-800 sm:pl-3 md:pl-6 text-xs font-mono">
+                <button (click)="toggleSettings()" class="group relative flex items-center justify-center p-2 md:p-0 w-10 h-10 md:w-auto md:px-4 md:h-10 rounded-lg bg-slate-100 hover:bg-white dark:bg-slate-900 border border-slate-200 hover:border-teal-300 dark:border-slate-800 dark:hover:border-teal-700/50 text-slate-500 hover:text-teal-600 dark:text-slate-400 dark:hover:text-teal-400 transition-all shadow-sm hover:shadow-md overflow-hidden shrink-0">
+                  <div class="absolute inset-0 bg-gradient-to-r from-teal-500/0 via-teal-500/10 to-teal-500/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 md:w-4 md:h-4 md:mr-2 relative z-10">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <span class="hidden md:block text-[10px] sm:text-xs font-bold uppercase tracking-wider relative z-10 transition-colors group-hover:text-teal-700 dark:group-hover:text-teal-300">Settings</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bottom Row: Dashboard Bar -->
+    <div class="w-full cygnus-border rounded-lg bg-white/50 dark:bg-slate-900/50 p-2 md:p-2 flex flex-wrap xl:flex-nowrap items-center justify-between gap-4 xl:gap-0 text-[10px] sm:text-xs font-mono backdrop-blur-sm shadow-md">
+        <!-- Left Section: Market Summary -->
+        <div class="flex items-center justify-between sm:justify-start w-full xl:w-auto divide-x divide-slate-200 dark:divide-slate-800 shrink-0 overflow-x-auto custom-scrollbar">
+            <div class="px-2 sm:px-4 text-center shrink-0" title="Advancing: Assets with a price increase">
+                <div class="text-green-500 dark:text-teal-400 font-bold text-base sm:text-lg tabular-nums">{{ marketSummary().advancing }}</div>
+                <div class="text-slate-500 dark:text-slate-400 tracking-wider">ADV</div>
+            </div>
+            <div class="px-2 sm:px-4 text-center shrink-0" title="Declining: Assets with a price decrease">
+                <div class="text-red-500 dark:text-red-400 font-bold text-base sm:text-lg tabular-nums">{{ marketSummary().declining }}</div>
+                <div class="text-slate-500 dark:text-slate-400 tracking-wider">DEC</div>
+            </div>
+            <div class="px-2 sm:px-4 text-center shrink-0" title="Unchanged: Assets with no price change">
+                <div class="text-slate-500 font-bold text-base sm:text-lg tabular-nums">{{ marketSummary().unchanged }}</div>
+                <div class="text-slate-500 dark:text-slate-400 tracking-wider">UNC</div>
+            </div>
+            <div class="px-2 sm:px-4 text-center shrink-0" title="Total active algorithmic signals">
+                <div class="font-bold text-base sm:text-lg tabular-nums text-slate-700 dark:text-slate-300">{{ activeSignals().length }}</div>
+                <div class="text-slate-500 dark:text-slate-400 tracking-wider">SIGNALS</div>
+            </div>
+        </div>
+
+        <!-- Center: Market Regime -->
+        <div class="hidden sm:flex items-center gap-2 shrink-0">
+            <span class="text-slate-500 font-semibold tracking-wider">MARKET REGIME:</span>
+            <span 
+              class="px-2 py-0.5 rounded text-white dark:text-black font-bold"
+              [class.bg-green-600]="regime().status === 'BULLISH'"
+              [class.dark:bg-teal-500]="regime().status === 'BULLISH'"
+              [class.bg-red-600]="regime().status === 'BEARISH'"
+              [class.dark:bg-red-500]="regime().status === 'BEARISH'"
+              [class.bg-yellow-600]="regime().status === 'VOLATILE'"
+              [class.dark:bg-amber-500]="regime().status === 'VOLATILE'"
+              [class.bg-slate-500]="regime().status === 'NEUTRAL'"
+            >
+              {{ regime().status }}
+            </span>
+        </div>
+
+        <!-- Right Section: Stats, Data Link, & Sync -->
+        <div class="flex items-center justify-between xl:justify-end w-full xl:w-auto divide-x divide-slate-200 dark:divide-slate-800 pt-2 xl:pt-0 border-t border-slate-200 dark:border-slate-800 xl:border-t-0 shrink-0">
+            @if (btcReference(); as btc) {
+                <div (click)="toggleBtcDetail()" class="hidden sm:flex items-center gap-3 px-4 cursor-pointer" title="View Bitcoin Details">
+                    <span class="font-bold text-orange-500">BTC/USD</span>
+                    <span class="text-slate-800 dark:text-slate-200 font-bold text-lg tabular-nums">
+                        ${{ btc.price | number:'1.0-0' }}
+                    </span>
+                    <span 
+                        class="text-xs font-bold px-1.5 py-0.5 rounded tabular-nums"
+                        [class.bg-green-100]="btc.change24h >= 0"
+                        [class.dark:bg-teal-500/20]="btc.change24h >= 0"
+                        [class.text-green-700]="btc.change24h >= 0"
+                        [class.dark:text-teal-400]="btc.change24h >= 0"
+                        [class.bg-red-100]="btc.change24h < 0"
+                        [class.dark:bg-red-500/20]="btc.change24h < 0"
+                        [class.text-red-700]="btc.change24h < 0"
+                        [class.dark:text-red-400]="btc.change24h < 0"
+                    >
+                        {{ btc.change24h >= 0 ? '+' : '' }}{{ btc.change24h | number:'1.2-2' }}%
+                    </span>
+                </div>
+            }
+             <div class="hidden xl:flex flex-col items-end px-4 text-slate-500">
+                <span title="Average volatility (Standard Deviation / Price) across all assets">
+                  VOLATILITY: <span class="text-slate-700 dark:text-slate-300 font-bold">{{ regime().volatility | percent:'1.2-2' }}</span>
+                </span>
+                <span title="Directional correlation of asset movements (0 = Chaotic, 1 = Unified)">
+                  CORRELATION: <span class="text-slate-700 dark:text-slate-300 font-bold">{{ regime().correlation | number:'1.2-2' }}</span>
+                </span>
+            </div>
+            
+            <!-- Data Link Status -->
+            <div class="hidden md:flex items-center gap-4 px-4">
+                @if (prefs.dataSourceMode() === 'LIVE') {
+                    @let wsStatus = webSocketLinkStatus();
+                    <div class="flex items-center gap-2" [title]="wsStatus.title">
+                        <div class="relative w-2 h-2 flex items-center justify-center">
+                            <div class="absolute w-full h-full rounded-full" [class]="wsStatus.dotColor" [class.animate-ping]="wsStatus.pulse && !prefs.reducedMotion()"></div>
+                            <div class="relative w-full h-full rounded-full" [class]="wsStatus.dotColor"></div>
+                        </div>
+                        <span class="font-bold tracking-wider text-xs" [class]="wsStatus.color">PRICE: {{ wsStatus.text }}</span>
+                    </div>
+                    @let api = apiLinkStatus();
+                    <div class="flex items-center gap-2" [title]="api.title">
+                         <div class="relative w-2 h-2 flex items-center justify-center">
+                            <div class="absolute w-full h-full rounded-full" [class]="api.dotColor" [class.animate-ping]="api.pulse && !prefs.reducedMotion()"></div>
+                            <div class="relative w-full h-full rounded-full" [class]="api.dotColor"></div>
+                        </div>
+                        <span class="font-bold tracking-wider text-xs" [class]="api.color">DATA: {{ api.text }}</span>
+                    </div>
+                } @else {
+                    @let status = dataLinkStatus();
+                    <div class="flex items-center gap-2" [title]="status.title">
+                        <div class="relative w-2 h-2 flex items-center justify-center">
+                            <div class="absolute w-full h-full rounded-full" [class]="status.dotColor" [class.animate-ping]="status.pulse && !prefs.reducedMotion()"></div>
+                            <div class="relative w-full h-full rounded-full" [class]="status.dotColor"></div>
+                        </div>
+                        <span class="font-bold tracking-wider" [class]="status.color">{{ status.text }}</span>
+                    </div>
+                }
+            </div>
+
+            <div class="pl-4">
+                <app-sync-indicator [progress]="timerProgress()" [isUpdating]="isUpdating()" />
+            </div>
+        </div>
+    </div>
+  </header>
+
+  <!-- Main Content Grid -->
+  <main class="flex-grow flex flex-col gap-6 px-4 md:px-6 my-6">
+
+    <!-- TOP ROW: INTEL -->
+    @if (!prefs.focusedWidget() || prefs.focusedWidget() === 'INTEL') {
+      <div class="w-full flex flex-col gap-2" [class.h-full]="prefs.focusedWidget() === 'INTEL'" [class.flex-grow]="prefs.focusedWidget() === 'INTEL'">
+        <div class="flex justify-between items-center px-1">
+             <h3 class="text-slate-600 dark:text-slate-400 font-bold font-sans text-sm uppercase tracking-widest flex items-center gap-2">
+               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 text-purple-500">
+                 <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+               </svg>
+               COGNITIVE FEED
+             </h3>
+             <button (click)="toggleFocus('INTEL')" class="text-xs text-slate-500 hover:text-green-500 dark:hover:text-teal-400 transition-colors font-mono">
+               [{{ prefs.focusedWidget() === 'INTEL' ? 'MINIMIZE' : 'EXPAND' }}]
+             </button>
+        </div>
+        <div [class.h-48]="!prefs.focusedWidget()" [class.h-full]="prefs.focusedWidget() === 'INTEL'" class="transition-all duration-300">
+          <app-intel-panel />
+        </div>
+      </div>
+    }
+
+    <!-- SPLIT ROW: MARKET & SIGNALS -->
+    @if (!prefs.focusedWidget() || prefs.focusedWidget() !== 'INTEL') {
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-grow transition-all duration-300">
+        
+        <!-- Market Grid -->
+        @if (!prefs.focusedWidget() || prefs.focusedWidget() === 'MARKET') {
+          <div class="lg:col-span-2 flex flex-col gap-2" [class.lg:col-span-3]="prefs.focusedWidget() === 'MARKET'">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-4">
+                 <h3 class="text-slate-600 dark:text-slate-400 font-bold font-sans text-sm uppercase tracking-widest flex items-center gap-2">
+                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                     <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+                   </svg>
+                   WATCHLIST
+                 </h3>
+                 <button (click)="toggleWatchlistEditor()" class="group flex items-center justify-center p-1 md:w-auto md:px-2 md:py-1 rounded bg-slate-100 hover:bg-white dark:bg-slate-900 border border-slate-200 hover:border-green-300 dark:border-slate-800 dark:hover:border-teal-700/50 text-slate-500 hover:text-green-600 dark:text-slate-400 dark:hover:text-teal-400 transition-all overflow-hidden text-[10px] font-bold uppercase tracking-wider">
+                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3 h-3 md:mr-1">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z" />
+                   </svg>
+                   <span class="hidden md:block">Manage List</span>
+                 </button>
+              </div>
+              <button (click)="toggleFocus('MARKET')" class="text-xs text-slate-500 hover:text-green-500 dark:hover:text-teal-400 transition-colors font-mono">
+                 [{{ prefs.focusedWidget() === 'MARKET' ? 'MINIMIZE' : 'EXPAND' }}]
+               </button>
+            </div>
+            
+            <app-market-grid 
+              [tokens]="tokens()" 
+              [selectedSymbol]="selectedTokenSymbol()"
+              (select)="handleTokenSelect($event)"
+              (reorder)="handleReorder($event)"
+              class="flex-grow" 
+            />
+          </div>
+        }
+
+        <!-- Signal Feed -->
+        @if (!prefs.focusedWidget() || prefs.focusedWidget() === 'SIGNALS') {
+          <div class="flex flex-col gap-2" [class.lg:col-span-3]="prefs.focusedWidget() === 'SIGNALS'">
+             <div class="flex items-center justify-between">
+                <div class="flex items-baseline gap-2 overflow-hidden">
+                  <h3 class="text-slate-600 dark:text-slate-400 font-bold font-sans text-sm uppercase tracking-widest flex items-center gap-2 truncate shrink">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 text-teal-500">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" />
+                    </svg>
+                    ALGORITHM SIGNALS {{ selectedTokenSymbol() ? '— ' + selectedTokenSymbol() : '' }}
+                  </h3>
+                  <span class="text-xs text-slate-500 dark:text-slate-500 flex-none" [class.animate-pulse]="!prefs.reducedMotion()">LIVE FEED</span>
+                </div>
+                <button (click)="toggleFocus('SIGNALS')" class="text-xs text-slate-500 hover:text-green-500 dark:hover:text-teal-400 transition-colors font-mono">
+                 [{{ prefs.focusedWidget() === 'SIGNALS' ? 'MINIMIZE' : 'EXPAND' }}]
+               </button>
+             </div>
+             <div class="flex-grow flex flex-col cygnus-border bg-white dark:bg-slate-925 p-4 rounded-lg">
+               <app-signal-feed 
+                 [signals]="activeSignals()"
+                 [tokens]="tokens()"
+                 (inspect)="handleTokenSelect($event)" 
+                 class="flex-grow" 
+               />
+             </div>
+          </div>
+        }
+
+      </div>
+    }
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="flex justify-center items-center text-slate-600 dark:text-slate-600 text-xs font-mono pt-4 border-t border-slate-200 dark:border-slate-900 mt-auto px-4 md:px-6 pb-4 md:pb-6">
+    <div class="text-center">
+      KESTREL TERMINAL SYSTEM V1.0.9 — TERMINAL ID: {{ terminalId }} — LOCAL STORAGE ACTIVE
+    </div>
+  </footer>
+
+  <!-- Watchlist Editor Modal -->
+  @if (showWatchlistEditor()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 dark:bg-black/80 backdrop-blur-md p-4 transition-all" (click)="toggleWatchlistEditor()">
+      <div class="w-full max-w-xl bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl border border-slate-200/50 dark:border-slate-800/50 shadow-2xl rounded-xl overflow-hidden flex flex-col max-h-[85vh] relative" (click)="$event.stopPropagation()">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-teal-500/10 flex items-center justify-center text-teal-600 dark:text-teal-400">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /></svg>
+            </div>
+            <h3 class="text-slate-900 dark:text-white font-sans font-semibold tracking-tight text-lg">Watchlist Management</h3>
+          </div>
+          <button (click)="toggleWatchlistEditor()" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 dark:bg-teal-500 hover:dark:bg-teal-400 text-white font-medium text-sm rounded-lg transition-colors shadow-sm">
+            Save & Close
+          </button>
+        </div>
+
+        <!-- Content -->
+        <div class="flex-1 p-6 overflow-y-auto custom-scrollbar font-sans space-y-8 bg-white dark:bg-slate-950">
+          <!-- Current Watchlist -->
+          <section>
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z" /></svg>
+              Current Assets
+            </h4>
+            <div class="space-y-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+              @for (token of tokens(); track token.symbol) {
+                <div 
+                  class="group flex justify-between items-center bg-white dark:bg-slate-900 p-3 rounded-lg border border-slate-200 dark:border-slate-800 cursor-grab hover:shadow-md transition-all hover:border-teal-300 dark:hover:border-teal-700 active:cursor-grabbing"
+                  [draggable]="true"
+                  (dragstart)="onDragStart($event, token.symbol)"
+                  (dragend)="onDragEnd($event)"
+                  (dragover)="onDragOver($event)"
+                  (drop)="onDrop($event, token.symbol)"
+                  (dragenter)="onDragEnter($event)"
+                  (dragleave)="onDragLeave($event)"
+                >
+                  <div class="flex items-center gap-4">
+                    <div class="text-slate-300 dark:text-slate-600 cursor-grab group-hover:text-slate-400 transition-colors">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9h16.5m-16.5 6.75h16.5" /></svg>
+                    </div>
+                     @if (token.imageUrl) {
+                        <img [src]="token.imageUrl" alt="{{token.symbol}} logo" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 object-cover shadow-sm ring-1 ring-black/5 dark:ring-white/10">
+                      } @else {
+                        <div class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-sm font-bold text-slate-500 shadow-sm ring-1 ring-black/5 dark:ring-white/10">
+                          {{ token.symbol[0] }}
+                        </div>
+                      }
+                    <div>
+                      <div class="flex flex-col">
+                        <span class="font-semibold text-slate-900 dark:text-white leading-tight mb-0.5">{{ token.symbol }}</span>
+                        <span class="text-slate-500 dark:text-slate-400 text-xs">{{ token.name }}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <button (click)="handleRemoveToken(token.symbol)" class="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors opacity-0 group-hover:opacity-100" title="Remove {{token.symbol}}">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+                  </button>
+                </div>
+              }
+            </div>
+          </section>
+          
+          <!-- Add New Asset -->
+          <section class="pt-6 border-t border-slate-200 dark:border-slate-800">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+              Add New Asset
+            </h4>
+            <div class="relative group">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-teal-500 dark:group-focus-within:text-teal-400 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
+              </div>
+              <input 
+                type="text" 
+                [value]="tokenSearchTerm()"
+                (input)="updateSearchTerm($event)" 
+                (keydown.enter)="handleManualAdd(tokenSearchTerm())"
+                placeholder="Search by Symbol or Name..."
+                class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-sm pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 dark:focus:border-teal-500 transition-all shadow-sm placeholder:text-slate-400"
+              >
+               @if (isSearching()) {
+                <div class="absolute right-4 top-1/2 -translate-y-1/2">
+                    <svg class="animate-spin h-4 w-4 text-teal-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </div>
+              }
+            </div>
+            
+            <div class="mt-4 space-y-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar min-h-[40px]">
+              @if (isSearching() && tokenSuggestions().length === 0) {
+                <div class="flex items-center justify-center p-4">
+                  <div class="text-sm text-slate-500 font-medium animate-pulse flex items-center gap-2">
+                    <svg class="animate-spin h-4 w-4 text-teal-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    Searching Networks...
+                  </div>
+                </div>
+              }
+              @for (s of tokenSuggestions(); track s.symbol) {
+                <div class="flex justify-between items-center bg-white dark:bg-slate-900/80 p-3 rounded-lg border border-slate-100 dark:border-slate-800 hover:border-teal-300 dark:hover:border-teal-700 hover:shadow-md transition-all group">
+                  <div class="flex items-center gap-4">
+                     @if (s.imageUrl) {
+                        <img [src]="s.imageUrl" alt="{{s.symbol}} logo" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 object-cover shadow-sm ring-1 ring-black/5 dark:ring-white/10">
+                      } @else {
+                        <div class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-sm font-bold text-slate-500 shadow-sm ring-1 ring-black/5 dark:ring-white/10">
+                          {{ s.symbol[0] }}
+                        </div>
+                      }
+                    <div>
+                      <div class="flex flex-col">
+                        <span class="font-semibold text-slate-900 dark:text-white leading-tight mb-0.5">{{ s.symbol }}</span>
+                        <span class="text-slate-500 dark:text-slate-400 text-xs">{{ s.name }}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <button (click)="handleAddToken(s)" class="px-3 py-1.5 flex items-center gap-1.5 bg-teal-50 hover:bg-teal-100 dark:bg-teal-500/10 dark:hover:bg-teal-500/20 text-teal-600 dark:text-teal-400 text-xs font-semibold rounded-md transition-colors opacity-0 group-hover:opacity-100">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                    Add
+                  </button>
+                </div>
+              } @empty {
+                @if (tokenSearchTerm() && !isSearching()) {
+                  <div class="flex flex-col items-center justify-center p-6 text-center bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-dashed border-slate-200 dark:border-slate-800">
+                    <div class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-3">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 text-slate-400"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
+                    </div>
+                    <span class="text-sm font-medium text-slate-600 dark:text-slate-300">No assets found</span>
+                    <span class="text-xs text-slate-500 mt-1">Try searching a different symbol or use manual add below.</span>
+                    <button class="mt-4 px-3 py-1.5 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-md transition-colors" (click)="handleManualAdd(tokenSearchTerm())">
+                      Force Add "{{tokenSearchTerm()}}"
+                    </button>
+                  </div>
+                }
+              }
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Token Detail Modal -->
+  @if (selectedTokenSymbol(); as symbol) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/20 dark:bg-black/80 backdrop-blur-sm p-4" (click)="deselectToken()">
+      <div class="w-full max-w-2xl" (click)="$event.stopPropagation()">
+         <app-token-detail [symbol]="symbol" [isUpdating]="isUpdating()" (close)="deselectToken()" />
+      </div>
+    </div>
+  } @else if (showBtcDetail()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/20 dark:bg-black/80 backdrop-blur-sm p-4" (click)="toggleBtcDetail()">
+        <div class="w-full max-w-2xl" (click)="$event.stopPropagation()">
+          @if (isFetchingBtcDetail()) {
+            <div class="cygnus-border bg-white dark:bg-slate-950 p-6 rounded-lg shadow-2xl h-96 flex items-center justify-center font-mono text-slate-500">
+              <div class="animate-pulse">FETCHING BTC DATA...</div>
+            </div>
+          } @else if (stateService.btcToken()) {
+            <app-token-detail symbol="BTC" [isUpdating]="isUpdating()" (close)="toggleBtcDetail()" />
+          } @else {
+             <div class="cygnus-border bg-white dark:bg-slate-950 p-6 rounded-lg shadow-2xl h-96 flex flex-col items-center justify-center font-mono text-red-500">
+               <p>FAILED TO FETCH BTC DATA</p>
+               <button (click)="toggleBtcDetail()" class="mt-4 text-xs hover:underline">[CLOSE]</button>
+             </div>
+          }
+        </div>
+    </div>
+  }
+  
+  <!-- Performance Audit Modal -->
+  @if (showPerformanceAudit()) {
+    <app-performance-dashboard (close)="togglePerformanceAudit()" />
+  }
+
+  <!-- Algorithm Docs Modal -->
+  @if (showDocs()) {
+    <app-algorithm-docs (close)="toggleDocs()" />
+  }
+
+  <!-- Settings Modal -->
+  @if (showSettings()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 dark:bg-black/80 backdrop-blur-md p-4 transition-all" (click)="toggleSettings()">
+      <div class="w-full max-w-2xl bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl border border-slate-200/50 dark:border-slate-800/50 shadow-2xl rounded-xl overflow-hidden flex flex-col max-h-[85vh] relative" (click)="$event.stopPropagation()">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-teal-500/10 flex items-center justify-center text-teal-600 dark:text-teal-400">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" /></svg>
+            </div>
+            <h3 class="text-slate-900 dark:text-white font-sans font-semibold tracking-tight text-lg">System Settings</h3>
+          </div>
+          <button (click)="toggleSettings()" class="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+        </div>
+
+        <div class="flex flex-col md:flex-row flex-1 overflow-hidden">
+          <!-- Sidebar Tabs -->
+          <div class="flex md:flex-col border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-800 overflow-x-auto md:w-48 bg-slate-50/30 dark:bg-slate-900/30 p-3 gap-1 custom-scrollbar shrink-0">
+            <button 
+              (click)="activeSettingsTab.set('DATA')"
+              class="px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap md:text-left flex items-center gap-2"
+              [class]="activeSettingsTab() === 'DATA' 
+                ? 'bg-white dark:bg-slate-800 text-teal-600 dark:text-teal-400 shadow-sm border border-slate-200/50 dark:border-slate-700/50 relative z-10' 
+                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50'"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0v3.75C20.25 20.395 16.556 22.5 12 22.5s-8.25-2.105-8.25-4.375v-3.75m16.5 0v3.75C20.25 20.395 16.556 22.5 12 22.5s-8.25-2.105-8.25-4.375v-3.75" /></svg>
+              Data
+            </button>
+            <button 
+              (click)="activeSettingsTab.set('INTERFACE')"
+              class="px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap md:text-left flex items-center gap-2"
+              [class]="activeSettingsTab() === 'INTERFACE' 
+                ? 'bg-white dark:bg-slate-800 text-teal-600 dark:text-teal-400 shadow-sm border border-slate-200/50 dark:border-slate-700/50 relative z-10' 
+                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50'"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M4.098 19.902a3.75 3.75 0 0 0 5.304 0l6.401-6.402M6.75 21A3.75 3.75 0 0 1 3 17.25l7.22-7.22a3.75 3.75 0 0 0 3.978-3.978l7.22 7.22A3.75 3.75 0 0 1 21 17.25M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h1.22l.306 1.222" /></svg>
+              Appearance
+            </button>
+            <button 
+              (click)="activeSettingsTab.set('NOTIFICATIONS')"
+              class="px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap md:text-left flex items-center gap-2"
+              [class]="activeSettingsTab() === 'NOTIFICATIONS' 
+                ? 'bg-white dark:bg-slate-800 text-teal-600 dark:text-teal-400 shadow-sm border border-slate-200/50 dark:border-slate-700/50 relative z-10' 
+                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50'"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" /></svg>
+              Alerts
+            </button>
+            <button 
+              (click)="activeSettingsTab.set('SYSTEM')"
+              class="px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap md:text-left flex items-center gap-2"
+              [class]="activeSettingsTab() === 'SYSTEM' 
+                ? 'bg-white dark:bg-slate-800 text-teal-600 dark:text-teal-400 shadow-sm border border-slate-200/50 dark:border-slate-700/50 relative z-10' 
+                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50'"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9z" /></svg>
+              Resources
+            </button>
+            <button 
+              (click)="activeSettingsTab.set('ACCESSIBILITY')"
+              class="px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap md:text-left flex items-center gap-2"
+              [class]="activeSettingsTab() === 'ACCESSIBILITY' 
+                ? 'bg-white dark:bg-slate-800 text-teal-600 dark:text-teal-400 shadow-sm border border-slate-200/50 dark:border-slate-700/50 relative z-10' 
+                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50'"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6z" /><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5z" /></svg>
+              Accessibility
+            </button>
+          </div>
+
+          <!-- Tab Panels -->
+          <div class="flex-1 p-6 overflow-y-auto custom-scrollbar font-sans">
+            @switch(activeSettingsTab()) {
+              @case('DATA') {
+                <div class="space-y-6">
+                  <!-- Data Source Mode -->
+                  <section>
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-3 border-b border-slate-200 dark:border-slate-800 pb-2">DATA SOURCE & REFRESH RATE</h4>
+                    <div class="flex bg-slate-100 dark:bg-slate-900 rounded p-1 border border-slate-200 dark:border-slate-800 mb-2">
+                      <button (click)="prefs.setDataSourceMode('SIMULATION')" class="flex-1 py-1.5 text-xs rounded-md transition-colors font-bold" [class.bg-white]="prefs.dataSourceMode() === 'SIMULATION'" [class.dark:bg-slate-800]="prefs.dataSourceMode() === 'SIMULATION'" [class.text-green-600]="prefs.dataSourceMode() === 'SIMULATION'" [class.dark:text-teal-400]="prefs.dataSourceMode() === 'SIMULATION'" [class.text-slate-500]="prefs.dataSourceMode() !== 'SIMULATION'" [class.shadow-sm]="prefs.dataSourceMode() === 'SIMULATION'">SIMULATION</button>
+                      <button (click)="prefs.setDataSourceMode('LIVE')" class="flex-1 py-1.5 text-xs rounded-md transition-colors font-bold" [class.bg-white]="prefs.dataSourceMode() === 'LIVE'" [class.dark:bg-slate-800]="prefs.dataSourceMode() === 'LIVE'" [class.text-blue-600]="prefs.dataSourceMode() === 'LIVE'" [class.dark:text-blue-400]="prefs.dataSourceMode() === 'LIVE'" [class.text-slate-500]="prefs.dataSourceMode() !== 'LIVE'" [class.shadow-sm]="prefs.dataSourceMode() === 'LIVE'">LIVE FEED</button>
+                    </div>
+                    @if(prefs.dataSourceMode() === 'SIMULATION') {
+                      <p class="text-[10px] text-slate-500 mt-1">Using generated, artificial market data for testing and demonstration.</p>
+                    } @else {
+                      <div class="flex bg-slate-100 dark:bg-slate-900 rounded p-1 border border-slate-200 dark:border-slate-800 mt-4">
+                        <button (click)="prefs.setRefreshRate('HYPER')" class="flex-1 py-1 text-[10px] rounded-md transition-colors" [class]="prefs.refreshRate() === 'HYPER' ? 'bg-red-200 dark:bg-red-800/50 text-red-700 dark:text-red-300 shadow-sm' : 'text-slate-500'">HYPER (5s)</button>
+                        <button (click)="prefs.setRefreshRate('AGGRESSIVE')" class="flex-1 py-1 text-[10px] rounded-md transition-colors" [class]="prefs.refreshRate() === 'AGGRESSIVE' ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 shadow-sm' : 'text-slate-500'">TURBO (30s)</button>
+                        <button (click)="prefs.setRefreshRate('STANDARD')" class="flex-1 py-1 text-[10px] rounded-md transition-colors" [class]="prefs.refreshRate() === 'STANDARD' ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200 shadow-sm' : 'text-slate-500'">STD (60s)</button>
+                        <button (click)="prefs.setRefreshRate('SAFE')" class="flex-1 py-1 text-[10px] rounded-md transition-colors" [class]="prefs.refreshRate() === 'SAFE' ? 'bg-green-100 dark:bg-teal-900/30 text-green-600 dark:text-teal-400 shadow-sm' : 'text-slate-500'">SAFE (2m)</button>
+                      </div>
+                      <p class="text-[10px] text-slate-500 mt-1">API Refresh Interval: Defines how often market data is polled.</p>
+                    }
+                  </section>
+                  
+                  <!-- Live Data Providers -->
+                  @if (prefs.dataSourceMode() === 'LIVE') {
+                    <section class="pt-6 mt-6 border-t border-slate-200 dark:border-slate-800/50">
+                      <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-3 border-b border-slate-200 dark:border-slate-800 pb-2 mt-4">LIVE DATA PROVIDERS</h4>
+                      <div class="space-y-4">
+                         <div>
+                          <label class="text-sm text-slate-600 dark:text-slate-300">Real-time Prices (WebSocket)</label>
+                           <div class="flex bg-slate-100 dark:bg-slate-900 rounded p-1 border border-slate-200 dark:border-slate-800 mt-1">
+                            <button (click)="prefs.setWebSocketProvider('COINCAP')" class="flex-1 py-1 text-xs rounded-md transition-colors" [class]="prefs.webSocketProvider() === 'COINCAP' ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200 shadow-sm' : 'text-slate-500'">COINCAP</button>
+                            <button (click)="prefs.setWebSocketProvider('BITSTAMP')" class="flex-1 py-1 text-xs rounded-md transition-colors" [class]="prefs.webSocketProvider() === 'BITSTAMP' ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200 shadow-sm' : 'text-slate-500'">BITSTAMP</button>
+                          </div>
+                          <p class="text-[10px] text-slate-500 mt-1">Bitstamp feed supports a limited token set (e.g., BTC, SOL).</p>
+                        </div>
+                        <div>
+                          <label class="text-sm text-slate-600 dark:text-slate-300">Market Data (API Poll)</label>
+                          <div class="flex bg-slate-100 dark:bg-slate-900 rounded p-1 border border-slate-200 dark:border-slate-800 mt-1">
+                            <button (click)="prefs.setApiProvider('COINGECKO')" class="flex-1 py-1 text-xs rounded-md transition-colors" [class]="prefs.apiProvider() === 'COINGECKO' ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200 shadow-sm' : 'text-slate-500'">COINGECKO</button>
+                            <button (click)="prefs.setApiProvider('COINMARKETCAP')" class="flex-1 py-1 text-xs rounded-md transition-colors" [class]="prefs.apiProvider() === 'COINMARKETCAP' ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200 shadow-sm' : 'text-slate-500'">COINMARKETCAP</button>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      @if (prefs.apiProvider() === 'COINMARKETCAP') {
+                        <div class="mt-4">
+                          <label class="text-xs text-slate-500 dark:text-slate-400">COINMARKETCAP API KEY</label>
+                          <div class="relative">
+                            <input type="text" [value]="prefs.coinMarketCapApiKey()" (input)="handleCmcApiKeyInput($event)" placeholder="Enter your API Key..." class="w-full bg-white dark:bg-slate-900 border text-slate-900 dark:text-slate-200 text-xs px-2 py-1.5 rounded focus:outline-none font-mono pr-8 transition-colors mt-1" [class.border-slate-300]="cmcApiKeyValidation() === 'UNTESTED'" [class.dark:border-slate-700]="cmcApiKeyValidation() === 'UNTESTED'" [class.focus:border-purple-500]="cmcApiKeyValidation() === 'UNTESTED'" [class.border-green-500]="cmcApiKeyValidation() === 'VALID'" [class.dark:border-green-500]="cmcApiKeyValidation() === 'VALID'" [class.focus:border-green-500]="cmcApiKeyValidation() === 'VALID'" [class.border-red-500]="cmcApiKeyValidation() === 'INVALID'" [class.dark:border-red-500]="cmcApiKeyValidation() === 'INVALID'" [class.focus:border-red-500]="cmcApiKeyValidation() === 'INVALID'">
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                               @if (cmcApiKeyValidation() === 'VALID') { <svg class="h-4 w-4 text-green-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg> }
+                               @else if (cmcApiKeyValidation() === 'INVALID') { <svg class="h-4 w-4 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg> }
+                               @else if (apiKeySaved()) { <span class="text-[10px] font-bold text-green-600 dark:text-teal-400">[SAVED]</span> }
+                            </div>
+                          </div>
+                          @if (cmcApiKeyValidation() === 'INVALID') { <p class="text-[10px] text-red-500 mt-1 font-bold">Key format appears incorrect.</p> }
+                          @else if (!prefs.coinMarketCapApiKey().trim()) { <p class="text-[10px] text-yellow-600 dark:text-amber-500 mt-1 font-bold">Data fetching is paused until a valid API key is provided.</p> }
+                        </div>
+                      }
+                    </section>
+                  }
+                  
+                  <section class="pt-6 mt-6 border-t border-slate-200 dark:border-slate-800/50">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-3 border-b border-slate-200 dark:border-slate-800 pb-2">AI & NEWS FEED</h4>
+                     <div class="flex items-center justify-between">
+                      <span class="text-slate-600 dark:text-slate-300">Google Search Grounding</span>
+                      <button (click)="prefs.toggleSearchGrounding()" class="w-10 h-5 rounded-full relative transition-colors duration-200" [class.bg-green-600]="prefs.useSearchGrounding()" [class.dark:bg-teal-600]="prefs.useSearchGrounding()" [class.bg-slate-300]="!prefs.useSearchGrounding()" [class.dark:bg-slate-700]="!prefs.useSearchGrounding()">
+                        <div class="absolute top-1 left-1 bg-white w-3 h-3 rounded-full transition-transform duration-200" [class.translate-x-5]="prefs.useSearchGrounding()"></div>
+                      </button>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-1">Allows the AI to access real-time web data for more current market narratives. Sources will be cited.</p>
+                  </section>
+                </div>
+              }
+              @case('INTERFACE') {
+                <div class="space-y-6">
+                  <section>
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-3 border-b border-slate-200 dark:border-slate-800 pb-2">APPEARANCE</h4>
+                    <div class="grid grid-cols-2 gap-3">
+                      <button (click)="prefs.setTheme('DARK')" class="p-2 rounded border-2" [class.border-green-500]="prefs.theme() === 'DARK'" [class.dark:border-teal-400]="prefs.theme() === 'DARK'" [class.border-transparent]="prefs.theme() !== 'DARK'">
+                        <div class="w-full h-10 flex items-center justify-center rounded-sm bg-[#081017] border border-[#223344]"><span class="font-bold text-xs text-[#E0F0FF]">Aa</span><div class="w-2 h-2 rounded-full bg-[#2dd4bf] ml-2"></div></div>
+                        <span class="text-xs font-bold block text-center mt-1">KESTREL</span>
+                      </button>
+                      <button (click)="prefs.setTheme('ARCTIC')" class="p-2 rounded border-2" [class.border-blue-500]="prefs.theme() === 'ARCTIC'" [class.border-transparent]="prefs.theme() !== 'ARCTIC'">
+                        <div class="w-full h-10 flex items-center justify-center rounded-sm bg-[#f8f9fa] border border-[#dee2e6]"><span class="font-bold text-xs text-[#212529]">Aa</span><div class="w-2 h-2 rounded-full bg-[#0d6efd] ml-2"></div></div>
+                        <span class="text-xs font-bold block text-center mt-1 text-slate-800 dark:text-slate-300">ARCTIC</span>
+                      </button>
+                      <button (click)="prefs.setTheme('MONOKAI')" class="p-2 rounded border-2" [class.border-pink-500]="prefs.theme() === 'MONOKAI'" [class.border-transparent]="prefs.theme() !== 'MONOKAI'">
+                        <div class="w-full h-10 flex items-center justify-center rounded-sm bg-[#272822] border border-[#49483e]"><span class="font-bold text-xs text-[#f8f8f2]">Aa</span><div class="w-2 h-2 rounded-full bg-[#f92672] ml-2"></div></div>
+                        <span class="text-xs font-bold block text-center mt-1">MONOKAI</span>
+                      </button>
+                      <button (click)="prefs.setTheme('EMBER')" class="p-2 rounded border-2" [class.border-orange-500]="prefs.theme() === 'EMBER'" [class.border-transparent]="prefs.theme() !== 'EMBER'">
+                        <div class="w-full h-10 flex items-center justify-center rounded-sm bg-[#1e1e1e] border border-[#383838]"><span class="font-bold text-xs text-[#d4d4d4]">Aa</span><div class="w-2 h-2 rounded-full bg-[#d69d85] ml-2"></div></div>
+                        <span class="text-xs font-bold block text-center mt-1">EMBER</span>
+                      </button>
+                    </div>
+                  </section>
+                  <section class="pt-6 mt-6 border-t border-slate-200 dark:border-slate-800/50">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-3 border-b border-slate-200 dark:border-slate-800 pb-2 mt-4">CLOCK FORMAT</h4>
+                    <div class="flex flex-col gap-4">
+                      <div class="flex bg-slate-100 dark:bg-slate-900 rounded p-1 border border-slate-200 dark:border-slate-800">
+                        <button (click)="prefs.setTimeFormat('24H')" class="flex-1 py-1.5 text-xs rounded-md transition-colors font-bold" [class.bg-white]="prefs.timeFormat() === '24H'" [class.dark:bg-slate-800]="prefs.timeFormat() === '24H'" [class.text-slate-900]="prefs.timeFormat() === '24H'" [class.dark:text-slate-200]="prefs.timeFormat() === '24H'" [class.text-slate-500]="prefs.timeFormat() !== '24H'" [class.shadow-sm]="prefs.timeFormat() === '24H'">24-HOUR</button>
+                        <button (click)="prefs.setTimeFormat('12H')" class="flex-1 py-1.5 text-xs rounded-md transition-colors font-bold" [class.bg-white]="prefs.timeFormat() === '12H'" [class.dark:bg-slate-800]="prefs.timeFormat() === '12H'" [class.text-slate-900]="prefs.timeFormat() === '12H'" [class.dark:text-slate-200]="prefs.timeFormat() === '12H'" [class.text-slate-500]="prefs.timeFormat() !== '12H'" [class.shadow-sm]="prefs.timeFormat() === '12H'">12-HOUR</button>
+                      </div>
+
+                      <label class="flex items-center justify-between cursor-pointer">
+                        <div class="flex items-center gap-2">
+                          <input type="checkbox" [checked]="prefs.showSeconds()" (change)="prefs.toggleShowSeconds()" class="sr-only peer">
+                          <div class="w-8 h-4 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all dark:border-slate-600 peer-checked:bg-green-500 dark:peer-checked:bg-teal-500 relative"></div>
+                          <span class="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Show Seconds</span>
+                        </div>
+                      </label>
+
+                      <label class="flex items-center justify-between cursor-pointer">
+                        <div class="flex items-center gap-2">
+                          <input type="checkbox" [checked]="prefs.blinkingColon()" (change)="prefs.toggleBlinkingColon()" class="sr-only peer">
+                          <div class="w-8 h-4 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all dark:border-slate-600 peer-checked:bg-green-500 dark:peer-checked:bg-teal-500 relative"></div>
+                          <span class="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Blinking Colon (:)</span>
+                        </div>
+                      </label>
+                    </div>
+                  </section>
+                </div>
+              }
+              @case('SYSTEM') {
+                <div class="space-y-6">
+                  <section>
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-3 border-b border-slate-200 dark:border-slate-800 pb-2">ALGORITHM DOCS & AUDITS</h4>
+                    <div class="flex flex-col gap-3">
+                      <button (click)="toggleDocs(); toggleSettings()" class="group relative flex items-center justify-between w-full p-4 rounded-lg bg-slate-100 hover:bg-white dark:bg-slate-900 border border-slate-200 hover:border-blue-300 dark:border-slate-800 dark:hover:border-blue-700/50 text-slate-700 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400 transition-all shadow-sm hover:shadow-md overflow-hidden text-left">
+                        <div class="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-blue-500/10 to-blue-500/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+                        <div class="relative z-10">
+                          <span class="block text-sm font-bold uppercase tracking-wider mb-1">Algorithm Documentation</span>
+                          <span class="block text-[10px] text-slate-500 dark:text-slate-400 font-mono">Detailed explanation of Kestrel's signals and methodology</span>
+                        </div>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 relative z-10">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                        </svg>
+                      </button>
+                      <button (click)="togglePerformanceAudit(); toggleSettings()" class="group relative flex items-center justify-between w-full p-4 rounded-lg bg-slate-100 hover:bg-white dark:bg-slate-900 border border-slate-200 hover:border-purple-300 dark:border-slate-800 dark:hover:border-purple-700/50 text-slate-700 hover:text-purple-600 dark:text-slate-300 dark:hover:text-purple-400 transition-all shadow-sm hover:shadow-md overflow-hidden text-left">
+                         <div class="absolute inset-0 bg-gradient-to-r from-purple-500/0 via-purple-500/10 to-purple-500/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+                         <div class="relative z-10">
+                          <span class="block text-sm font-bold uppercase tracking-wider mb-1">Performance Audits</span>
+                          <span class="block text-[10px] text-slate-500 dark:text-slate-400 font-mono">Historical accuracy and win rates for generated signals</span>
+                        </div>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 relative z-10">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+                        </svg>
+                      </button>
+                    </div>
+                  </section>
+                </div>
+              }
+              @case('NOTIFICATIONS') {
+                <div class="space-y-6">
+                   <section>
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-3 border-b border-slate-200 dark:border-slate-800 pb-2">TOAST NOTIFICATIONS</h4>
+                    <div class="flex items-center justify-between">
+                      <span class="text-slate-600 dark:text-slate-300">Enable Toast Pop-ups</span>
+                      <button (click)="prefs.toggleNotifications()" class="w-10 h-5 rounded-full relative transition-colors duration-200" [class.bg-green-600]="prefs.notificationsEnabled()" [class.dark:bg-teal-600]="prefs.notificationsEnabled()" [class.bg-slate-300]="!prefs.notificationsEnabled()" [class.dark:bg-slate-700]="!prefs.notificationsEnabled()">
+                        <div class="absolute top-1 left-1 bg-white w-3 h-3 rounded-full transition-transform duration-200" [class.translate-x-5]="prefs.notificationsEnabled()"></div>
+                      </button>
+                    </div>
+                    <p class="text-[10px] text-slate-500 mt-1">Note: Only user-set price alerts will create pop-ups. All other signals appear in the main feed.</p>
+                  </section>
+
+                  <div class="pt-6 mt-6 border-t border-slate-200 dark:border-slate-800/50" [class.opacity-50]="!prefs.notificationsEnabled()" [class.pointer-events-none]="!prefs.notificationsEnabled()">
+                    <section>
+                      <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-3 border-b border-slate-200 dark:border-slate-800 pb-2 mt-4">ALERT PREFERENCES</h4>
+                      <div class="flex items-center justify-between mb-2">
+                        <label for="confidence" class="text-slate-600 dark:text-slate-300">Min. Confidence Threshold</label>
+                        <span class="text-sm font-bold text-slate-700 dark:text-slate-200 tabular-nums">{{ prefs.notificationConfidenceThreshold() }}%</span>
+                      </div>
+                      <input id="confidence" type="range" min="0" max="100" step="5" [value]="prefs.notificationConfidenceThreshold()" (input)="handleConfidenceChange($event)" [disabled]="!prefs.notificationsEnabled()" class="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer">
+                    </section>
+                    
+                    <section class="mt-6">
+                      <span class="text-slate-600 dark:text-slate-300 text-sm">Enable notifications for:</span>
+                      <div class="mt-2 space-y-2">
+                        @for (sig of configurableSignalTypes; track sig.type) {
+                          <label class="flex items-center gap-3 p-2 bg-slate-100 dark:bg-slate-900 rounded-md cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">
+                            <input type="checkbox" [checked]="isSignalNotificationEnabled(sig.type)" (change)="toggleSignalNotification(sig.type)" [disabled]="!prefs.notificationsEnabled()" class="w-4 h-4 rounded text-green-600 dark:text-teal-500 bg-slate-200 dark:bg-slate-700 border-slate-300 dark:border-slate-600 focus:ring-green-500 dark:focus:ring-teal-600">
+                            <app-algorithm-icon [name]="sig.icon" class="w-4 h-4 text-slate-500" />
+                            <span class="text-sm text-slate-700 dark:text-slate-300">{{ sig.name }}</span>
+                          </label>
+                        }
+                      </div>
+                    </section>
+                  </div>
+                </div>
+              }
+              @case('ACCESSIBILITY') {
+                <div>
+                  <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-3 border-b border-slate-200 dark:border-slate-800 pb-2">COGNITIVE ACCESSIBILITY</h4>
+                  <div class="flex items-center justify-between">
+                    <span class="text-slate-600 dark:text-slate-300">Reduced Motion & Effects</span>
+                    <button (click)="prefs.toggleMotion()" class="w-10 h-5 rounded-full relative transition-colors duration-200" [class.bg-green-600]="prefs.reducedMotion()" [class.dark:bg-teal-600]="prefs.reducedMotion()" [class.bg-slate-300]="!prefs.reducedMotion()" [class.dark:bg-slate-700]="!prefs.reducedMotion()">
+                      <div class="absolute top-1 left-1 bg-white w-3 h-3 rounded-full transition-transform duration-200" [class.translate-x-5]="prefs.reducedMotion()"></div>
+                    </button>
+                  </div>
+                  <p class="text-xs text-slate-500 mt-1">Disables blinking, pulsing, and neon glow effects to reduce sensory load.</p>
+
+                  <div class="mt-6 pt-6 border-t border-slate-200 dark:border-slate-800 text-center text-xs text-slate-500 dark:text-slate-600">
+                    Accessibility profile active.
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Footer -->
+  <footer class="mt-auto border-t border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm px-4 md:px-6 py-4 flex flex-col md:flex-row items-center justify-between text-xs text-slate-500 font-mono gap-4">
+    <div class="flex items-center gap-2">
+      <app-logo class="w-4 h-4 text-slate-400" />
+      <span>&copy; Kestrel Protocol. Advanced Quantitative Systems.</span>
+    </div>
+    <div class="flex items-center gap-6">
+      <button (click)="toggleDocs()" class="hover:text-blue-500 dark:hover:text-blue-400 transition-colors font-bold tracking-wider uppercase">[ALGORITHM DOCS]</button>
+      <button (click)="togglePerformanceAudit()" class="hover:text-purple-500 dark:hover:text-purple-400 transition-colors font-bold tracking-wider uppercase">[PERFORMANCE AUDITS]</button>
+    </div>
+  </footer>
+
+  <!-- Notification Toasts -->
+  <app-notification-list />
+
+</div>
